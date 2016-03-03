@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 PREV_DIR=$(pwd)
 SCRIPT_DIR="$( dirname "${BASH_SOURCE[0]}" )"
+BUILD_DIR=${SCRIPT_DIR}/build
+mkdir -p ${BUILD_DIR}
 cd ${SCRIPT_DIR}
 pwd
 mvn clean
@@ -16,3 +18,4 @@ echo "Building Mac x64"
 mvn package -P mac64
 cd ${PREV_DIR}
 pwd
+cp ${SCRIPT_DIR}/target/pricemin-*.jar ${BUILD_DIR}
