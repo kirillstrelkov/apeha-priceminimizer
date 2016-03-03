@@ -1,7 +1,5 @@
 *.class
 
-*.jar
-
 .idea/workspace.xml
 .idea/libraries
 
