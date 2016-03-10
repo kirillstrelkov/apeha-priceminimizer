@@ -19,3 +19,4 @@ mvn package -P mac64
 cd ${PREV_DIR}
 pwd
 cp ${SCRIPT_DIR}/target/pricemin-*.jar ${BUILD_DIR}
+chmod +x ${SCRIPT_DIR}/target/*.jar

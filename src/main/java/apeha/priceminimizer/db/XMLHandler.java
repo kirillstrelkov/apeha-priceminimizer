@@ -56,7 +56,7 @@ public class XMLHandler implements ItemHandler {
             e1.printStackTrace();
         }
 
-        if (is == null)
+        if (is == null) {
             try {
                 is = new FileInputStream(dbStream);
             } catch (NullPointerException e1) {
@@ -64,6 +64,7 @@ public class XMLHandler implements ItemHandler {
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
+        }
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
@@ -90,13 +91,18 @@ public class XMLHandler implements ItemHandler {
         Element root = dom.getDocumentElement();
         TreeMap<Category, List<Item>> map = Maps.newTreeMap();
 
-        for (Node typeNode = root.getFirstChild(); typeNode != null; typeNode = typeNode
-                .getNextSibling()) {
+        for (Node typeNode = root.getFirstChild(); typeNode != null; typeNode = typeNode.getNextSibling()) {
+            if (typeNode.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
+            }
             String type = typeNode.getNodeName().replaceAll("_", " ");
+
             List<Item> list = Lists.newLinkedList();
 
-            for (Node nameNode = typeNode.getFirstChild(); nameNode != null; nameNode = nameNode
-                    .getNextSibling()) {
+            for (Node nameNode = typeNode.getFirstChild(); nameNode != null; nameNode = nameNode.getNextSibling()) {
+                if (nameNode.getNodeType() != Node.ELEMENT_NODE) {
+                    continue;
+                }
                 Item item = new Item();
                 String name = nameNode.getNodeName();
                 name = name.replaceAll("Q", "\"");
@@ -104,16 +110,19 @@ public class XMLHandler implements ItemHandler {
                 item.setName(name);
                 Map<Property, String> properties = Maps.newTreeMap();
 
-                for (Node statNode = nameNode.getFirstChild(); statNode != null; statNode = statNode
-                        .getNextSibling()) {
+                for (Node statNode = nameNode.getFirstChild(); statNode != null; statNode = statNode.getNextSibling()) {
+                    if (statNode.getNodeType() != Node.ELEMENT_NODE) {
+                        continue;
+                    }
                     String stat = statNode.getNodeName();
                     stat = stat.replaceAll("\\_", "\\ ");
                     String context = statNode.getTextContent();
 
-                    if (stat.contains("Изображение"))
+                    if (stat.contains("Изображение")) {
                         item.setImageSrc(context);
-                    else
+                    } else {
                         properties.put(Property.getPropertyFrom(stat), context);
+                    }
                 }
 
                 item.setPropertiesAndValues(properties);

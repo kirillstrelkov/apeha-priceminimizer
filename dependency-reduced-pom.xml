@@ -21,7 +21,7 @@
                         <configuration>
                             <transformers>
                                 <transformer>
-                                    <mainClass>apeha.priceminimizer.App</mainClass>
+                                    <mainClass>apeha.priceminimizer.gui.MainGUI</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

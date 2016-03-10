@@ -38,6 +38,15 @@ public class MainGUI {
         help = new GuiHelp(this);
     }
 
+    public static void main(String[] args) {
+        try {
+            MainGUI window = new MainGUI();
+            window.open();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void open() {
         Display display = Display.getDefault();
         createContents();
