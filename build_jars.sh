@@ -20,3 +20,4 @@ cd ${PREV_DIR}
 pwd
 cp ${SCRIPT_DIR}/target/pricemin-*.jar ${BUILD_DIR}
 chmod +x ${SCRIPT_DIR}/target/*.jar
+chmod +x ${BUILD_DIR}/*.jar
