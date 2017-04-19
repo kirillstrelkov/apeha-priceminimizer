@@ -1,15 +1,22 @@
 package apeha.priceminimizer.webdriver;
 
 import com.google.common.base.Predicate;
+import org.apache.commons.lang3.SystemUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,9 +33,17 @@ public class CommonUtils {
 
     private void setDriver() {
         if (driver == null) {
-            FirefoxProfile firefoxProfile = new FirefoxProfile();
-            firefoxProfile.setPreference("dom.max_script_run_time", 200);
-            driver = new FirefoxDriver(firefoxProfile);
+            String home = System.getProperty("user.home");
+            String driverName = "chromedriver";
+            if (SystemUtils.IS_OS_WINDOWS) {
+                driverName += ".exe";
+            }
+            System.setProperty("webdriver.chrome.driver", Paths.get(home, driverName).toString());
+//            System.setProperty("webdriver.gecko.driver", Paths.get(home, "geckodriver").toString());
+//            FirefoxProfile firefoxProfile = new FirefoxProfile();
+//            firefoxProfile.setPreference("dom.max_script_run_time", 200);
+//            driver = new FirefoxDriver(firefoxProfile);
+            driver = new ChromeDriver();
             driver.manage().window().maximize();
         }
     }
@@ -101,7 +116,14 @@ public class CommonUtils {
         select.selectByVisibleText(text);
     }
 
-    public void selectByValueFromDropDown(WebElement element, String value) {
+    public void selectByVisibleTextFromDropDown(By by, String text) {
+        WebElement element = findElement(by);
+        Select select = new Select(element);
+        select.selectByVisibleText(text);
+    }
+
+    public void selectByValueFromDropDown(By by, String value) {
+        WebElement element = findElement(by);
         Select select = new Select(element);
         select.selectByValue(value);
     }
@@ -111,18 +133,7 @@ public class CommonUtils {
     }
 
     public void waitForVisible(final WebElement element) {
-        new WebDriverWait(driver, timeout).until(new Predicate<WebDriver>() {
-
-            @Override
-            public boolean apply(WebDriver arg0) {
-                try {
-                    return element.isDisplayed();
-                } catch (WebDriverException e) {
-                    return false;
-                }
-            }
-
-        });
+        new WebDriverWait(driver, timeout).until(ExpectedConditions.visibilityOf(element));
     }
 
     public void waitForNotVisible(final By by) {
@@ -130,41 +141,15 @@ public class CommonUtils {
     }
 
     public void waitForNotVisible(final WebElement element) {
-        new WebDriverWait(driver, timeout).until(new Predicate<WebDriver>() {
-
-            @Override
-            public boolean apply(WebDriver arg0) {
-                try {
-                    return !element.isDisplayed();
-                } catch (WebDriverException e) {
-                    return true;
-                }
-
-            }
-
-        });
+        new WebDriverWait(driver, timeout).until(ExpectedConditions.invisibilityOf(element));
     }
 
     public void waitForPresent(final By by) {
-        new WebDriverWait(driver, timeout).until(new Predicate<WebDriver>() {
-
-            @Override
-            public boolean apply(WebDriver arg0) {
-                return driver.findElements(by).size() > 0;
-            }
-
-        });
+        new WebDriverWait(driver, timeout).until(ExpectedConditions.numberOfElementsToBeMoreThan(by, 0));
     }
 
     public void waitForNotPresent(final By by) {
-        new WebDriverWait(driver, timeout).until(new Predicate<WebDriver>() {
-
-            @Override
-            public boolean apply(WebDriver arg0) {
-                return driver.findElements(by).size() == 0;
-            }
-
-        });
+        new WebDriverWait(driver, timeout).until(ExpectedConditions.numberOfElementsToBe(by, 0));
     }
 
     public void closeDriver() {
@@ -199,19 +184,7 @@ public class CommonUtils {
     }
 
     public WebElement findElement(final WebElement webItem, final By by, int i) {
-        new WebDriverWait(driver, timeout).until(new Predicate<WebDriver>() {
-
-            @Override
-            public boolean apply(WebDriver arg0) {
-                try {
-                    webItem.findElements(by);
-                    return true;
-                } catch (WebDriverException e) {
-                    return false;
-                }
-            }
-
-        });
+        new WebDriverWait(driver, timeout).until(ExpectedConditions.presenceOfNestedElementLocatedBy(webItem, by));
         return webItem.findElements(by).get(i);
     }
 

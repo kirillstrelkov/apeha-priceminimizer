@@ -52,10 +52,7 @@ public class ApehaPage {
             utils.goTo(url);
         By eName = By.cssSelector("input[name=\"iname\"]");
         By search = By.cssSelector("input[value=\"Найти\"]");
-        WebElement eStone = utils.findElement(By
-                .cssSelector("select[name=\"gem\"]"));
-        WebElement eFacet = utils.findElement(By
-                .cssSelector("select[name=\"mod\"]"));
+
 
         String[] found = new String[2];
         found[0] = null;
@@ -68,9 +65,11 @@ public class ApehaPage {
             name = name.substring(0, index);
         }
         utils.type(eName, name);
-        utils.selectByVisibleTextFromDropDown(eStone, stone);
-        if (facet != null)
-            utils.selectByValueFromDropDown(eFacet, facet);
+
+        utils.selectByVisibleTextFromDropDown(By.cssSelector("select[name=\"gem\"]"), stone);
+        if (facet != null) {
+            utils.selectByValueFromDropDown(By.cssSelector("select[name=\"mod\"]"), facet);
+        }
         utils.click(search);
         List<ModItem> itemsFromSearch = getItemsFromSearch();
         return getItemWithLowestPrice(item, itemsFromSearch);
@@ -195,6 +194,11 @@ public class ApehaPage {
             utils.goTo(cityUrl.concat("market_mode_2.html"));
             utils.click(enterShop);
             utils.click(all);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
