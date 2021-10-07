@@ -1,25 +1,19 @@
 package apeha.priceminimizer.webdriver;
 
-import com.google.common.base.Predicate;
+import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.commons.lang3.SystemUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 public class CommonUtils {
     private WebDriver driver = null;
@@ -39,10 +33,11 @@ public class CommonUtils {
                 driverName += ".exe";
             }
             System.setProperty("webdriver.chrome.driver", Paths.get(home, driverName).toString());
-//            System.setProperty("webdriver.gecko.driver", Paths.get(home, "geckodriver").toString());
-//            FirefoxProfile firefoxProfile = new FirefoxProfile();
-//            firefoxProfile.setPreference("dom.max_script_run_time", 200);
-//            driver = new FirefoxDriver(firefoxProfile);
+            // System.setProperty("webdriver.gecko.driver", Paths.get(home,
+            // "geckodriver").toString());
+            // FirefoxProfile firefoxProfile = new FirefoxProfile();
+            // firefoxProfile.setPreference("dom.max_script_run_time", 200);
+            // driver = new FirefoxDriver(firefoxProfile);
             driver = new ChromeDriver();
             driver.manage().window().maximize();
         }
