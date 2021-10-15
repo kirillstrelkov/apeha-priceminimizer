@@ -1,23 +1,32 @@
 package apeha.priceminimizer.gui;
 
+import java.io.StringReader;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebElement;
+
 import apeha.priceminimizer.item.ModItem;
 import apeha.priceminimizer.item.Property;
 import apeha.priceminimizer.item.TextParser;
 import apeha.priceminimizer.item.stone.Modification;
 import apeha.priceminimizer.market.MarketPrice;
 import apeha.priceminimizer.webdriver.CommonUtils;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.NoSuchElementException;
-import org.openqa.selenium.WebElement;
-
-import java.io.StringReader;
-import java.util.*;
 
 public class ApehaPage {
     private static final String PROBLEMS_WITH_GETTING_MOD_INFO = "Проблемы с получением данных";
+    private static final String LINING = "Подкладка";
 
     private static final String APEHA_URL = "http://www.apeha.ru";
 
@@ -40,8 +49,7 @@ public class ApehaPage {
         if (utils.isVisible(nickField) && utils.isVisible(passField)) {
             utils.type(nickField, nick);
             utils.type(passField, passwd);
-            ((JavascriptExecutor) utils.getDriver())
-                    .executeScript("jQuery('#loginform').submit();");
+            ((JavascriptExecutor) utils.getDriver()).executeScript("jQuery('#loginform').submit();");
             openWindowInCurrentTab();
         }
     }
@@ -53,20 +61,27 @@ public class ApehaPage {
         By eName = By.cssSelector("input[name=\"iname\"]");
         By search = By.cssSelector("input[value=\"Найти\"]");
 
-
         String[] found = new String[2];
         found[0] = null;
         found[1] = null;
+
         String name = item.getName();
-        name = name.replaceAll("\\( *мод\\. *\\)", "")
-                .replaceAll("\\( *закл\\. *\\)", "").trim();
-        if (name.contains("(")) {
+        boolean isLining = name.contains(LINING);
+        if (isLining) {
+            stone = "Любой";
+            facet = "0";
+        }
+
+        name = name.replaceAll("\\( *мод\\. *\\)", "").replaceAll("\\( *закл\\. *\\)", "").trim();
+        if (name.contains("(") && !isLining) {
             int index = name.indexOf("(");
-            name = name.substring(0, index);
+            name = name.substring(0, index).trim();
         }
         utils.type(eName, name);
 
-        utils.selectByVisibleTextFromDropDown(By.cssSelector("select[name=\"gem\"]"), stone);
+        if (stone != null) {
+            utils.selectByVisibleTextFromDropDown(By.cssSelector("select[name=\"gem\"]"), stone);
+        }
         if (facet != null) {
             utils.selectByValueFromDropDown(By.cssSelector("select[name=\"mod\"]"), facet);
         }
@@ -110,17 +125,17 @@ public class ApehaPage {
         return true;
     }
 
-    private String[] getItemWithLowestPrice(ModItem item,
-                                            List<ModItem> itemsFound) {
+    private String[] getItemWithLowestPrice(ModItem item, List<ModItem> itemsFound) {
         Map<MarketPrice, ModItem> map = Maps.newLinkedHashMap();
         List<String> foundItems = Lists.newLinkedList();
         // String allItems = "";
         Property priceInMarket = Property.PRICE_IN_MARKET;
 
+        boolean isLining = item.getName().contains(LINING);
+
         for (ModItem next : itemsFound) {
             Map<Property, String> properties = next.getPropertiesAndValues();
-            String priceString = Property.formatProperty(priceInMarket,
-                    properties.get(priceInMarket));
+            String priceString = Property.formatProperty(priceInMarket, properties.get(priceInMarket));
             MarketPrice marketPrice = MarketPrice.format(priceString);
 
             if (areItemModsEqual(item, next))
@@ -129,13 +144,20 @@ public class ApehaPage {
             StringBuilder str = new StringBuilder();
             str.append("\n");
             str.append(next.getName() + "\n");
-            str.append(properties.get(priceInMarket) + "\t"
-                    + properties.get(Property.SHOP) + "\n");
+            str.append(properties.get(priceInMarket) + "\t" + properties.get(Property.SHOP) + "\n");
 
             if (next.getMod1() != null)
                 str.append(next.getMod1() + "\n");
             if (next.getMod2() != null)
                 str.append(next.getMod2() + "\n");
+
+            if (isLining) {
+                for (Property p : properties.keySet()) {
+                    if (p != Property.REQUIRED_LEVEL && p != Property.PRICE_IN_MARKET && p != Property.SHOP) {
+                        str.append(Property.formatProperty(p, properties.get(p)) + "\n");
+                    }
+                }
+            }
             String string = str.toString();
             if (!foundItems.contains(string))
                 foundItems.add(string);
@@ -151,8 +173,7 @@ public class ApehaPage {
             // System.out.println(priceList.toString());
             for (MarketPrice mprice : priceList) {
                 // System.out.println(mprice.toString());
-                if (!map.get(mprice).getPropertiesAndValues()
-                        .get(Property.SHOP).contains(nick)) {
+                if (!map.get(mprice).getPropertiesAndValues().get(Property.SHOP).contains(nick)) {
                     found[0] = mprice.toString();
                     break;
                 }
@@ -163,8 +184,7 @@ public class ApehaPage {
 
             @Override
             public int compare(String o1, String o2) {
-                return MarketPrice.formatFromValue(o1).compareTo(
-                        MarketPrice.formatFromValue(o2));
+                return MarketPrice.formatFromValue(o1).compareTo(MarketPrice.formatFromValue(o2));
             }
         });
         StringBuilder builder = new StringBuilder();
@@ -178,10 +198,8 @@ public class ApehaPage {
 
     private void openWindowInCurrentTab() {
         By link = By.cssSelector("#after_login div[onclick*=newWin]");
-        String attribute = utils.getAttribute(utils.findElement(link),
-                "onclick");
-        attribute = attribute.replaceAll("newWin\\(\"", "").replaceAll(
-                "\",\"main\"\\);", "");
+        String attribute = utils.getAttribute(utils.findElement(link), "onclick");
+        attribute = attribute.replaceAll("newWin\\(\"", "").replaceAll("\",\"main\"\\);", "");
         utils.goTo(attribute);
         cityUrl = attribute.substring(0, attribute.lastIndexOf("/") + 1);
     }
@@ -248,15 +266,13 @@ public class ApehaPage {
         Iterator<WebElement[]> iterator = getWebItems().iterator();
         while (iterator.hasNext()) {
             WebElement[] next = iterator.next();
-            itemString = itemString.concat(utils.getText(next[0]) + "\n"
-                    + utils.getText(next[1]) + "\n\n");
+            itemString = itemString.concat(utils.getText(next[0]) + "\n" + utils.getText(next[1]) + "\n\n");
         }
         return TextParser.getModItems(new StringReader(itemString));
     }
 
     private List<WebElement[]> getWebItems() {
-        By itemTr = By
-                .cssSelector("table.bordo>tbody>tr:nth-child(2)>td:nth-child(2)>table>tbody>tr");
+        By itemTr = By.cssSelector("table.bordo>tbody>tr:nth-child(2)>td:nth-child(2)>table>tbody>tr");
         List<WebElement[]> webItems = new LinkedList<WebElement[]>();
         utils.waitForVisible(itemTr);
         List<WebElement> elements = utils.findElements(itemTr);
@@ -280,8 +296,7 @@ public class ApehaPage {
         By priceBlues = By.cssSelector("input[name=\"eprice\"]");
         By ok = By.cssSelector("input[value=\"OK\"]");
 
-        String formatedPrice = Property.PRICE_IN_MARKET.getName() + ":"
-                + minPrice;
+        String formatedPrice = Property.PRICE_IN_MARKET.getName() + ":" + minPrice;
         MarketPrice newPrice = MarketPrice.format(formatedPrice);
 
         goToMyShop();
@@ -291,10 +306,9 @@ public class ApehaPage {
         WebElement priceElement = utils.findElement(webItem, price);
         utils.type(priceElement, newPrice.getMainPrice());
 
-        if (newPrice.getBluePrice() != null) {
+        if (newPrice.getBluePrice() != null && newPrice.getBluePrice() != "0.00") {
             try {
-                WebElement priceBluesElement = utils.findElement(webItem,
-                        priceBlues);
+                WebElement priceBluesElement = utils.findElement(webItem, priceBlues);
                 utils.type(priceBluesElement, newPrice.getBluePrice());
             } catch (NoSuchElementException e) {
 
